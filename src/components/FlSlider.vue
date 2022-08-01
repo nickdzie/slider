@@ -1,36 +1,23 @@
 <template>
-  <div class="bt-fl-slider">
+  <div class="bt-fl-slider" @mouseenter="hideButtons = false" @mouseleave="hideButtons = true">
     <div class="bt-fl-slider__wrapper" ref="wrapper">
-      <button class="bt-fl-slider__button bt-fl-slider__button--prev"><</button>
+      <nav-button :is-prev="true" :is-module-dark="false" :size="'big'" :is-hidden="hideButtons" @click="prevSlide"></nav-button >
       <div class="bt-fl-slider__wrapper__track" ref="track">
-        <slot name="items">
-
-        </slot>
+        <slot name="items"></slot>
       </div>
-      <button class="bt-fl-slider__button bt-fl-slider__button--next"><</button>
+      <nav-button :is-prev="false" :is-module-dark="false" :size="'big'" :is-hidden="hideButtons" @click="nextSlide"></nav-button>
     </div>
-    <div class="bt-fl-slider__pagination">
-      <button class="bt-fl-slider__pagination__button bt-fl-slider__pagination--prev" @click="prevSlide"><</button>
-      <div class="bt-fl-slider__pagination__text">
-        <span class="bt-fl-slider__pagination--current">
-          {{currentPage}}
-        </span>
-        <span class="bt-fl-slider__pagination--separator">
-          von
-        </span>
-        <span class="bt-fl-slider__pagination--pages">
-          {{pages}}
-        </span>
-      </div>
-      <button class="bt-fl-slider__pagination__button bt-fl-slider__pagination--next" @click="nextSlide"><</button>
-    </div>
+    <pagination :current-page="currentPage" :pages="pages" @click-prev="prevSlide" @click-next="nextSlide"></pagination>
   </div>
 </template>
 
 <script>
 import $ from 'jquery'
+import Pagination from "@/components/Pagination";
+import NavButton from "@/components/NavButton";
 export default {
   name: "FlSlider",
+  components: {NavButton, Pagination},
   props: {
     slidesPerColumnXs: Number,
     slidesPerGroupXs: Number,
@@ -53,19 +40,16 @@ export default {
       slides: [],
       slideGroups: [],
       isSlidesWrapped: null,
+      hideButtons: true,
     }
   },
   mounted() {
     window.addEventListener("resize", this.setViewport);
-    this.$refs.wrapper.addEventListener("scroll", this.handleScroll);
+    this.$refs.track.addEventListener("scroll", this.handleScroll);
     this.slides = this.$refs.track.childNodes;
     this.slideWidth = this.$refs.track.firstElementChild.getBoundingClientRect().width;
     this.calcPages();
     this.setViewport();
-  },
-  unmounted() {
-    window.removeEventListener("resize", this.setViewport);
-    window.removeEventListener("scroll", this.handleScroll);
   },
   watch: {
     currentViewport() {
@@ -134,14 +118,14 @@ export default {
       this.checkSlides(this.isSlidesWrapped);
     },
     prevSlide() {
-      let currentScroll = this.$refs.wrapper.scrollLeft;
+      let currentScroll = this.$refs.track.scrollLeft;
       let amountToSlide = this.slideWidth * (this.currentSlidesPerGroup / this.currentSlidesPerColumn);
-      this.$refs.wrapper.scrollTo({left: currentScroll - amountToSlide, behavior: "smooth"});
+      this.$refs.track.scrollTo({left: currentScroll - amountToSlide, behavior: "smooth"});
     },
     nextSlide() {
-      let currentScroll = this.$refs.wrapper.scrollLeft;
+      let currentScroll = this.$refs.track.scrollLeft;
       let amountToSlide = this.slideWidth * (this.currentSlidesPerGroup / this.currentSlidesPerColumn);
-      this.$refs.wrapper.scrollTo({left: currentScroll + amountToSlide, behavior: "smooth"});
+      this.$refs.track.scrollTo({left: currentScroll + amountToSlide, behavior: "smooth"});
     },
     changeViewport() {
       return this.currentViewport = 'LG';
@@ -158,8 +142,6 @@ export default {
       }
     }
   },
-  computed: {
-  }
 }
 </script>
 
@@ -180,8 +162,6 @@ $white: #FFFFFF;
     overflow: hidden;
     background-color: #191919;
     scroll-snap-align: start;
-
-    font-size: 4rem;
   }
 
   &__wrapper {
@@ -190,48 +170,17 @@ $white: #FFFFFF;
       right: calc(-50vw + 50%);
       bottom: 3.2rem;
     }
-    padding: 0 1.6rem;
     position: relative;
-    overflow: auto;
-    scroll-behavior: smooth;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: 1.6rem;
-
+    overflow: hidden;
 
     &__track {
+      padding: 0 1.6rem;
       display: grid;
       grid-auto-flow: column;
       gap: 1.6rem;
-      padding-right: 1.6rem;
-
-    }
-  }
-
-  &__button {
-    display: none;
-  }
-
-  &__pagination {
-    height: 3.2rem;
-    margin-bottom: 4.8rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    &__button {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: none;
-      border-radius: 50%;
-      width: 3.2rem;
-      height: 3.2rem;
-      background-color: $black;
-      color: $white;
-    }
-
-    &--next {
-      transform: scaleX(-1);
+      scroll-snap-type: x proximity;
+      scroll-padding-inline: 1.6rem;
+      overflow: auto;
     }
   }
 
@@ -249,10 +198,12 @@ $white: #FFFFFF;
         left: calc(50vw - 600px);
         right: calc(50vw - 600px);
       };
+
       &__track {
         display: flex;
         flex-wrap: nowrap;
         flex-direction: row;
+        overflow: hidden;
       }
     }
 
